@@ -5,18 +5,28 @@
 # the root directory of this source tree.
 import asyncio
 import os
-
+import logging
 import fire
 
-from examples.client_tools.ticker_data import get_ticker_data
 from examples.client_tools.web_search import WebSearchTool
 from llama_stack_client import LlamaStackClient
 from llama_stack_client.lib.agents.agent import Agent
 from llama_stack_client.lib.agents.event_logger import EventLogger
 from llama_stack_client.types.agent_create_params import AgentConfig
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 async def run_main(host: str, port: int, disable_safety: bool = False):
+    if "BRAVE_SEARCH_API_KEY" not in os.environ:
+        print(
+            colored(
+                "Warning: BRAVE_SEARCH_API_KEY is not set; will not use websearch tool.",
+                "yellow",
+            )
+        )
+    
     client = LlamaStackClient(
         base_url=f"http://{host}:{port}",
     )
@@ -27,20 +37,34 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
     else:
         print(f"Available shields found: {available_shields}")
 
+    all_models = [
+        model.identifier for model in client.models.list()
+    ]
+    if not all_models: 
+        raise ValueError(
+            "No models found. Check the /v1/models endpoint for your Llama Stack server."
+        )
+
     available_models = [
         model.identifier for model in client.models.list() if model.model_type == "llm"
     ]
-    supported_models = [x for x in available_models if "3.2" in x and "Vision" not in x]
+    if not available_models: 
+        raise ValueError(
+            "No available llm models found. Use a model of with 'model_type':'llm'."
+        )
+    
+    # The e2e_loop_with_client_tools sample only supported Llama 3.2 models
+    # supported_models = [x for x in available_models if "3.2" in x and "Vision" not in x]
+    supported_models = [x for x in available_models if "Vision" not in x]
     if not supported_models:
         raise ValueError(
-            "No supported models found. Make sure to have a Llama 3.2 model."
+            "No supported models found. This client expects an LLM that is not a Vision model."
         )
     else:
         selected_model = supported_models[0]
-        print(f"Using model: {selected_model}")
+        logger.info(f"Using model: {selected_model}")
 
     client_tools = [
-        get_ticker_data,
         WebSearchTool(os.getenv("BRAVE_SEARCH_API_KEY")),
     ]
     agent_config = AgentConfig(
@@ -67,8 +91,9 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
     print(f"Created session_id={session_id} for Agent({agent.agent_id})")
 
     user_prompts = [
-        "What was the closing price of Google stock (ticker symbol GOOG) for 2020 ?",
         "Who was the 42nd president of the United States?",
+        "Who won the Super Bowl in 2025?"
+        "How long would it take a cheetah to run across the Pont Des Artes?"
     ]
     for prompt in user_prompts:
         response = agent.create_turn(
