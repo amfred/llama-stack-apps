@@ -92,7 +92,8 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
 
     user_prompts = [
         "Who was the 42nd president of the United States?",
-        "Who won the Super Bowl in 2025?"
+        "Who won the Super Bowl in 2025?",
+        "How fast can a cheetah run?",
         "How long would it take a cheetah to run across the Pont Des Artes?"
     ]
     for prompt in user_prompts:
