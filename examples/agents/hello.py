@@ -12,7 +12,6 @@ from llama_stack_client.lib.agents.agent import Agent
 from llama_stack_client.lib.agents.event_logger import EventLogger
 from termcolor import colored
 
-
 def main(host: str, port: int, model_id: Optional[str] = None):
     if "TAVILY_SEARCH_API_KEY" not in os.environ:
         print(
@@ -72,7 +71,7 @@ def main(host: str, port: int, model_id: Optional[str] = None):
             [
                 "builtin::websearch",
             ]
-            if os.getenv("TAVILY_SEARCH_API_KEY")
+            if os.getenv("BRAVE_SEARCH_API_KEY")
             else []
         ),
         input_shields=available_shields if available_shields else [],
@@ -95,6 +94,7 @@ def main(host: str, port: int, model_id: Optional[str] = None):
                 }
             ],
             session_id=session_id,
+            stream=False,
         )
 
         for log in EventLogger().log(response):
