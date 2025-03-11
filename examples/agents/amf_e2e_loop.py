@@ -7,8 +7,9 @@ import asyncio
 import os
 import logging
 import fire
-
+from examples.client_tools.ticker_data import get_ticker_data
 from examples.client_tools.web_search import WebSearchTool
+from examples.client_tools.calculator import calculator
 from llama_stack_client import LlamaStackClient
 from llama_stack_client.lib.agents.agent import Agent
 from llama_stack_client.lib.agents.event_logger import EventLogger
@@ -65,7 +66,9 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
         logger.info(f"Using model: {selected_model}")
 
     client_tools = [
+        get_ticker_data,
         WebSearchTool(os.getenv("BRAVE_SEARCH_API_KEY")),
+        calculator,
     ]
     agent_config = AgentConfig(
         model=selected_model,
@@ -91,10 +94,12 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
     print(f"Created session_id={session_id} for Agent({agent.agent_id})")
 
     user_prompts = [
-        "Who was the 42nd president of the United States?",
-        "Who won the Super Bowl in 2025?",
+        #"What was the closing price of Google stock (ticker symbol GOOG) for 2023 ?",
+        #"Who was the 42nd president of the United States?",
+        #"What is 40+30?",
+        #"Who won the Super Bowl in 2025?",
         "How fast can a cheetah run?",
-        "How long would it take a cheetah to run across the Pont Des Artes?"
+        #"How long would it take a cheetah to run across the Pont Des Artes?"
     ]
     for prompt in user_prompts:
         response = agent.create_turn(
