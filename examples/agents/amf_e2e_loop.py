@@ -79,7 +79,8 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
     ]
     agent_config = AgentConfig(
         model=selected_model,
-        instructions="You are a helpful assistant with access to the following function calls. Your task is to produce a list of function calls necessary to generate response to the user utterance. Use the following function calls as required.",
+        instructions="You are a helpful assistant with access to the following function calls. Your task is to produce a list of function calls necessary to generate response to the user utterance. Use the following function calls as required.", # For Granite
+        #instructions="You are a helpful assistant. Use the tools you have access to for providing relevant answers.", # For Llama
         sampling_params={
             "strategy": {"type": "top_p", "temperature": 1.0, "top_p": 0.9},
         },
@@ -91,7 +92,8 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
             client_tool.get_tool_definition() for client_tool in client_tools
         ],
         tool_choice="auto",
-        tool_prompt_format="json",
+        tool_prompt_format="json", # for Granite
+        #tool_prompt_format="python_list", # For Llama
         input_shields=available_shields if available_shields else [],
         output_shields=available_shields if available_shields else [],
         enable_session_persistence=False,
@@ -102,10 +104,9 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
     print(f"Created session_id={session_id} for Agent({agent.agent_id})")
 
     user_prompts = [
-        "What was the closing price of Google stock (ticker symbol GOOG) for 2023 ?",
         "Who was the 42nd president of the United States?",
-        "What is 40+30?",
-        "Who won the Super Bowl in 2025?",
+        "What is 41+30?",
+        #"Who won the Super Bowl in 2025?",
         "How fast can a cheetah run?",
         "How long would it take a cheetah to run across the Pont Des Artes?"
     ]
