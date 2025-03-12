@@ -14,8 +14,15 @@ from llama_stack_client import LlamaStackClient
 from llama_stack_client.lib.agents.agent import Agent
 from llama_stack_client.lib.agents.event_logger import EventLogger
 from llama_stack_client.types.agent_create_params import AgentConfig
+from termcolor import cprint
 
-# Set up logging
+# Turn down the httpx logging
+# Get the logger for 'httpx'
+http_logger = logging.getLogger("httpcore")
+# Set the logging level to WARNING
+http_logger.setLevel(logging.WARNING)
+
+# Set up logging for myself
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -63,12 +70,12 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
         )
     else:
         selected_model = supported_models[0]
-        logger.info(f"Using model: {selected_model}")
+        logger.debug(f"Using model: {selected_model}")
 
     client_tools = [
-        get_ticker_data,
-        WebSearchTool(os.getenv("BRAVE_SEARCH_API_KEY")),
-        calculator,
+        #get_ticker_data,
+        WebSearchTool(os.getenv("TAVILY_SEARCH_API_KEY")),
+        #calculator,
     ]
     agent_config = AgentConfig(
         model=selected_model,
@@ -78,12 +85,13 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
         },
         toolgroups=[
             "builtin::code_interpreter",
+            "builtin::websearch",
         ],
         client_tools=[
             client_tool.get_tool_definition() for client_tool in client_tools
         ],
         tool_choice="auto",
-        tool_prompt_format="python_list",
+        tool_prompt_format="json",
         input_shields=available_shields if available_shields else [],
         output_shields=available_shields if available_shields else [],
         enable_session_persistence=False,
@@ -94,14 +102,15 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
     print(f"Created session_id={session_id} for Agent({agent.agent_id})")
 
     user_prompts = [
-        #"What was the closing price of Google stock (ticker symbol GOOG) for 2023 ?",
-        #"Who was the 42nd president of the United States?",
-        #"What is 40+30?",
-        #"Who won the Super Bowl in 2025?",
+        "What was the closing price of Google stock (ticker symbol GOOG) for 2023 ?",
+        "Who was the 42nd president of the United States?",
+        "What is 40+30?",
+        "Who won the Super Bowl in 2025?",
         "How fast can a cheetah run?",
-        #"How long would it take a cheetah to run across the Pont Des Artes?"
+        "How long would it take a cheetah to run across the Pont Des Artes?"
     ]
     for prompt in user_prompts:
+        cprint(f"User> {prompt}", "green")
         response = agent.create_turn(
             messages=[
                 {
@@ -111,7 +120,6 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
             ],
             session_id=session_id,
         )
-
         for log in EventLogger().log(response):
             log.print()
 
