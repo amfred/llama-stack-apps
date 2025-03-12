@@ -22,15 +22,20 @@ http_logger = logging.getLogger("httpcore")
 # Set the logging level to WARNING
 http_logger.setLevel(logging.WARNING)
 
+# Get the logger for the llama stack client
+http_logger = logging.getLogger("llama_stack_client")
+# Set the logging level to WARNING
+http_logger.setLevel(logging.WARNING)
+
 # Set up logging for myself
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 async def run_main(host: str, port: int, disable_safety: bool = False):
-    if "BRAVE_SEARCH_API_KEY" not in os.environ:
+    if "TAVILY_SEARCH_API_KEY" not in os.environ:
         print(
             colored(
-                "Warning: BRAVE_SEARCH_API_KEY is not set; will not use websearch tool.",
+                "Warning: TAVILY_SEARCH_API_KEY is not set; will not use websearch tool.",
                 "yellow",
             )
         )
@@ -106,7 +111,7 @@ async def run_main(host: str, port: int, disable_safety: bool = False):
     user_prompts = [
         "Who was the 42nd president of the United States?",
         "What is 41+30?",
-        #"Who won the Super Bowl in 2025?",
+        #"Who won the Super Bowl in 2025 according to a web search?",
         "How fast can a cheetah run?",
         "How long would it take a cheetah to run across the Pont Des Artes?"
     ]
